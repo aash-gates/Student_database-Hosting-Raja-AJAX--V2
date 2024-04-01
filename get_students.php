@@ -2,6 +2,8 @@
 // Include db_connect.php to establish a database connection
 include 'db_connect.php';
 
+$response = array();
+
 // Pagination variables
 $results_per_page = 10;
 
@@ -15,12 +17,20 @@ $result_page = $connection->query($sql_page);
 
 if ($result_page->num_rows > 0) {
     while ($row = $result_page->fetch_assoc()) {
-        echo "<tr>";
-        echo "<td><a href='student_details.php?id=" . $row['student_id'] . "'>" . $row['full_name'] . "</a></td>";
-        echo "<td>" . $row['student_id'] . "</td>";
-        echo "</tr>";
+        $response[] = "<tr>";
+        $response[] = "<td><a href='student_details.php?id=" . $row['student_id'] . "'>" . $row['full_name'] . "</a></td>";
+        $response[] = "<td>" . $row['student_id'] . "</td>";
+        $response[] = "<td><button class='btn btn-danger delete-btn' data-student-id='" . $row['student_id'] . "'>Delete</button></td>";
+        $response[] = "</tr>";
     }
 } else {
-    echo "<tr><td colspan='2'>No students found.</td></tr>";
+    $response[] = "<tr><td colspan='3'>No students found.</td></tr>";
 }
+
+// Close the database connection
+$connection->close();
+
+// Send JSON response
+header('Content-Type: application/json');
+echo json_encode($response);
 ?>
