@@ -1,15 +1,21 @@
 <?php
-// Include db_connect.php to establish a database connection
+// Include your db_connect.php file to establish a database connection
 include 'db_connect.php';
 
-// Retrieve a random quote from the database
-$sql_quote = "SELECT quote FROM Quotes ORDER BY RAND() LIMIT 1";
-$result_quote = $connection->query($sql_quote);
+// Assuming you have a Quotes table with a column named 'quote'
+$sql = "SELECT quote FROM Quotes ORDER BY RAND() LIMIT 1";
+$result = $connection->query($sql);
 
-if ($result_quote->num_rows > 0) {
-    $row = $result_quote->fetch_assoc();
-    echo $row['quote'];
+if ($result) {
+    if ($result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+        echo $row["quote"];
+    } else {
+        echo "No quotes available";
+    }
 } else {
-    echo "No quotes found.";
+    echo "Error fetching quotes: " . $connection->error;
 }
+
+$connection->close();
 ?>
