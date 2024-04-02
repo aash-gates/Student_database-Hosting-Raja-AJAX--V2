@@ -211,6 +211,38 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
     <!-- JavaScript for AJAX -->
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script>
+     // Function to fetch time information via JavaScript
+    function getTime() {
+        var options = {
+            hour: 'numeric',
+            minute: 'numeric',
+            second: 'numeric',
+            hour12: true // Display time in 12-hour format
+        };
+        var currentTime = new Date().toLocaleTimeString([], options);
+        $('#time-info').text('Current Time: ' + currentTime);
+    }
+
+    // Function to fetch quote information via AJAX
+    function getQuote() {
+        $.ajax({
+            url: 'get_quote.php',
+            success: function(response) {
+                $('#quote-info').text(response);
+            }
+        });
+    }
+
+    // Initial call to fetch time and quote information
+    getTime();
+    getQuote();
+
+    // Update time every second
+    setInterval(getTime, 1000);
+
+    // Update quote every 30 seconds
+    setInterval(getQuote, 30000);
+    
     // Function to delete a student record asynchronously
     function deleteStudent(studentId) {
         // First confirmation dialog
