@@ -157,16 +157,27 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
                                     // Include db_connect.php to establish a database connection
                                     include 'db_connect.php';
 
-                                    // Fetch and display student records
-                                    $sql = "SELECT full_name, student_id FROM StudentRecords";
-                                    $result = $connection->query($sql);
+                                    // Pagination variables
+                                    $results_per_page = 10;
+                                    $sql_students = "SELECT full_name, student_id FROM StudentRecords";
+                                    $result_students = $connection->query($sql_students);
+                                    $num_rows = $result_students->num_rows;
+                                    $num_pages = ceil($num_rows / $results_per_page);
 
-                                    if ($result->num_rows > 0) {
-                                        while ($row = $result->fetch_assoc()) {
+                                    // Get current page from URL query string
+                                    $page = isset($_GET['page']) ? $_GET['page'] : 1;
+                                    $start_index = ($page - 1) * $results_per_page;
+
+                                    // Retrieve students for the current page
+                                    $sql_page = "SELECT full_name, student_id FROM StudentRecords LIMIT $start_index, $results_per_page";
+                                    $result_page = $connection->query($sql_page);
+
+                                    if ($result_page->num_rows > 0) {
+                                        while ($row = $result_page->fetch_assoc()) {
                                             echo "<tr>";
                                             echo "<td><a href='student_details.php?id=" . $row['student_id'] . "'>" . $row['full_name'] . "</a></td>";
                                             echo "<td>" . $row['student_id'] . "</td>";
-                                            echo "<td><a href='delete_student.php?id=" . $row['student_id'] . "' class='btn btn-danger'>Delete</a></td>";
+                                            echo "<td><a href='#' class='btn btn-danger' onclick='confirmDelete(" . $row['student_id'] . ")'>Delete</a></td>";
                                             echo "</tr>";
                                         }
                                     } else {
@@ -179,7 +190,16 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
                                 </tbody>
                             </table>
                         </div>
-                        <a href="add_student.php" class="btn btn-primary">Add Student</a>
+                        <!-- Pagination links -->
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination justify-content-center">
+                                <?php
+                                for ($i = 1; $i <= $num_pages; $i++) {
+                                    echo "<li class='page-item" . ($i == $page ? ' active' : '') . "'><a class='page-link' href='?page=$i'>$i</a></li>";
+                                }
+                                ?>
+                            </ul>
+                        </nav>
                     </div>
                 </div>
             </div>
@@ -218,6 +238,16 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
 
         // Update quote every 30 seconds
         setInterval(getQuote, 30000);
+
+        // Function to confirm student deletion
+        function confirmDelete(studentId) {
+            if (confirm("Are you sure you want to delete this student?")) {
+                if (confirm("Are you really sure you want to delete this student?")) {
+                    // Redirect to delete_student.php with student ID as parameter
+                    window.location.href = "delete_student.php?id=" + studentId;
+                }
+            }
+        }
     </script>
 
 </body>
