@@ -149,56 +149,36 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
                                     <tr>
                                         <th>Full Name</th>
                                         <th>Student ID</th>
+                                        <th>Action</th>
                                     </tr>
                                 </thead>
-                                <tbody id="student-table-body">
+                                <tbody>
                                     <?php
                                     // Include db_connect.php to establish a database connection
                                     include 'db_connect.php';
 
-                                    // Pagination variables
-                                    $results_per_page = 10;
-                                    $sql_students = "SELECT full_name, student_id FROM StudentRecords";
-                                    $result_students = $connection->query($sql_students);
-                                    $num_rows = $result_students->num_rows;
-                                    $num_pages = ceil($num_rows / $results_per_page);
+                                    // Fetch and display student records
+                                    $sql = "SELECT full_name, student_id FROM StudentRecords";
+                                    $result = $connection->query($sql);
 
-                                    // Get current page from URL query string
-                                    $page = isset($_GET['page']) ? $_GET['page'] : 1;
-                                    $start_index = ($page - 1) * $results_per_page;
-
-                                    // Retrieve students for the current page
-                                    $sql_page = "SELECT full_name, student_id FROM StudentRecords LIMIT $start_index, $results_per_page";
-                                    $result_page = $connection->query($sql_page);
-
-                                    if ($result_page->num_rows > 0) {
-                                        while ($row = $result_page->fetch_assoc()) {
+                                    if ($result->num_rows > 0) {
+                                        while ($row = $result->fetch_assoc()) {
                                             echo "<tr>";
                                             echo "<td><a href='student_details.php?id=" . $row['student_id'] . "'>" . $row['full_name'] . "</a></td>";
                                             echo "<td>" . $row['student_id'] . "</td>";
+                                            echo "<td><a href='delete_student.php?id=" . $row['student_id'] . "' class='btn btn-danger'>Delete</a></td>";
                                             echo "</tr>";
                                         }
                                     } else {
-                                        echo "<tr><td colspan='2'>No students found.</td></tr>";
+                                        echo "<tr><td colspan='3'>No students found.</td></tr>";
                                     }
+
+                                    // Close connection
+                                    $connection->close();
                                     ?>
                                 </tbody>
                             </table>
                         </div>
-                        <!-- Pagination links -->
-                        <nav aria-label="Page navigation">
-                            <ul class="pagination justify-content-center">
-                                <?php
-                                for ($i = 1; $i <= $num_pages; $i++) {
-                                    echo "<li class='page-item" . ($i == $page ? ' active' : '') . "'><a class='page-link' href='?page=$i'>$i</a></li>";
-                                }
-                                ?>
-                            </ul>
-                            <!-- Loading spinner -->
-                            <div id="loading-spinner" class="spinner-border text-primary" role="status" style="display: none;">
-                                <span class="sr-only">Loading...</span>
-                            </div>
-                        </nav>
                         <a href="add_student.php" class="btn btn-primary">Add Student</a>
                     </div>
                 </div>
@@ -209,74 +189,36 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
     <!-- JavaScript for AJAX -->
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script>
-    // Function to fetch time information via AJAX
-    function getTime() {
-        $.ajax({
-            url: 'get_time.php',
-            success: function(response) {
-                $('#time-info').text('Current Time: ' + response);
-            }
-        });
-    }
+        // Function to fetch time information via AJAX
+        function getTime() {
+            $.ajax({
+                url: 'get_time.php',
+                success: function(response) {
+                    $('#time-info').text('Current Time: ' + response);
+                }
+            });
+        }
 
-    // Function to fetch quote information via AJAX
-    function getQuote() {
-        $.ajax({
-            url: 'get_quote.php',
-            success: function(response) {
-                $('#quote-info').text(response);
-            }
-        });
-    }
+        // Function to fetch quote information via AJAX
+        function getQuote() {
+            $.ajax({
+                url: 'get_quote.php',
+                success: function(response) {
+                    $('#quote-info').text(response);
+                }
+            });
+        }
 
-    // Function to fetch paginated student records
-    function getStudents(page) {
-        // Show loading spinner
-        $('#loading-spinner').show();
+        // Initial call to fetch time and quote information
+        getTime();
+        getQuote();
 
-        $.ajax({
-            url: 'get_students.php?page=' + page,
-            success: function(response) {
-                // Hide loading spinner
-                $('#loading-spinner').hide();
-                $('#student-table-body').html(response);
-            }
-        });
-    }
+        // Update time every second
+        setInterval(getTime, 1000);
 
-    // Initial call to fetch time and quote information
-    getTime();
-    getQuote();
-
-    // Update time every second
-    setInterval(getTime, 1000);
-
-    // Update quote every 30 seconds
-    setInterval(getQuote, 30000);
-
-    // Attach click event to pagination links
-    $(document).on('click', '.pagination a', function(e) {
-        e.preventDefault();
-        var page = $(this).attr('href').split('page=')[1];
-        getStudents(page);
-        // Remove 'active' class from all pagination links
-        $('.pagination li').removeClass('active');
-        // Add 'active' class to the clicked pagination link
-        $(this).parent().addClass('active');
-    });
-
-    // Highlight active page on page load
-    $(document).ready(function() {
-        var currentPage = <?php echo isset($_GET['page']) ? $_GET['page'] : 1; ?>;
-        $(".pagination li").removeClass('active');
-        $(".pagination li a").each(function() {
-            var href = $(this).attr('href');
-            if (href.indexOf('page=' + currentPage) !== -1) {
-                $(this).parent().addClass('active');
-            }
-        });
-    });
-</script>
+        // Update quote every 30 seconds
+        setInterval(getQuote, 30000);
+    </script>
 
 </body>
 
