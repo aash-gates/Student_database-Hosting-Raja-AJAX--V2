@@ -152,7 +152,7 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
                                         <th>Action</th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody id="student-table-body">
                                     <?php
                                     // Include db_connect.php to establish a database connection
                                     include 'db_connect.php';
@@ -177,15 +177,12 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
                                             echo "<tr>";
                                             echo "<td><a href='student_details.php?id=" . $row['student_id'] . "'>" . $row['full_name'] . "</a></td>";
                                             echo "<td>" . $row['student_id'] . "</td>";
-                                            echo "<td><a href='#' class='btn btn-danger' onclick='confirmDelete(" . $row['student_id'] . ")'>Delete</a></td>";
+                                            echo "<td><button class='btn btn-danger' onclick='deleteStudent(" . $row['student_id'] . ")'>Delete</button></td>";
                                             echo "</tr>";
                                         }
                                     } else {
                                         echo "<tr><td colspan='3'>No students found.</td></tr>";
                                     }
-
-                                    // Close connection
-                                    $connection->close();
                                     ?>
                                 </tbody>
                             </table>
@@ -199,7 +196,12 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
                                 }
                                 ?>
                             </ul>
+                            <!-- Loading spinner -->
+                            <div id="loading-spinner" class="spinner-border text-primary" role="status" style="display: none;">
+                                <span class="sr-only">Loading...</span>
+                            </div>
                         </nav>
+                        <a href="add_student.php" class="btn btn-primary">Add Student</a>
                     </div>
                 </div>
             </div>
@@ -209,46 +211,37 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
     <!-- JavaScript for AJAX -->
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script>
-        // Function to fetch time information via AJAX
-        function getTime() {
-            $.ajax({
-                url: 'get_time.php',
-                success: function(response) {
-                    $('#time-info').text('Current Time: ' + response);
-                }
-            });
-        }
-
-        // Function to fetch quote information via AJAX
-        function getQuote() {
-            $.ajax({
-                url: 'get_quote.php',
-                success: function(response) {
-                    $('#quote-info').text(response);
-                }
-            });
-        }
-
-        // Initial call to fetch time and quote information
-        getTime();
-        getQuote();
-
-        // Update time every second
-        setInterval(getTime, 1000);
-
-        // Update quote every 30 seconds
-        setInterval(getQuote, 30000);
-
-        // Function to confirm student deletion
-        function confirmDelete(studentId) {
-            if (confirm("Are you sure you want to delete this student?")) {
-                if (confirm("Are you really sure you want to delete this student?")) {
-                    // Redirect to delete_student.php with student ID as parameter
-                    window.location.href = "delete_student.php?id=" + studentId;
-                }
+    // Function to delete a student record asynchronously
+    function deleteStudent(studentId) {
+        // First confirmation dialog
+        if (confirm('Are you sure you want to delete this student record?')) {
+            // Second confirmation dialog
+            if (confirm('This action is irreversible. Are you absolutely sure?')) {
+                $.ajax({
+                    url: 'delete_student.php?id=' + studentId,
+                    type: 'GET',
+                    beforeSend: function() {
+                        // Show loading spinner before sending the request
+                        $('#loading-spinner').show();
+                    },
+                    success: function(response) {
+                        // Redirect to the dashboard after successful deletion
+                        window.location.href = 'dashboard.php';
+                    },
+                    error: function(xhr, status, error) {
+                        // Display an error message if deletion fails
+                        alert('Error deleting student record. Please try again.');
+                    },
+                    complete: function() {
+                        // Remove loading spinner after request completion
+                        $('#loading-spinner').hide();
+                    }
+                });
             }
         }
-    </script>
+    }
+</script>
+
 
 </body>
 
