@@ -153,7 +153,41 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
                                     </tr>
                                 </thead>
                                 <tbody id="student-table-body">
+<<<<<<< HEAD
                                     <!-- Student records will be dynamically loaded here -->
+=======
+                                    <?php
+                                    // Include db_connect.php to establish a database connection
+                                    include 'db_connect.php';
+
+                                    // Pagination variables
+                                    $results_per_page = 10;
+                                    $sql_students = "SELECT full_name, student_id FROM StudentRecords";
+                                    $result_students = $connection->query($sql_students);
+                                    $num_rows = $result_students->num_rows;
+                                    $num_pages = ceil($num_rows / $results_per_page);
+
+                                    // Get current page from URL query string
+                                    $page = isset($_GET['page']) ? $_GET['page'] : 1;
+                                    $start_index = ($page - 1) * $results_per_page;
+
+                                    // Retrieve students for the current page
+                                    $sql_page = "SELECT full_name, student_id FROM StudentRecords LIMIT $start_index, $results_per_page";
+                                    $result_page = $connection->query($sql_page);
+
+                                    if ($result_page->num_rows > 0) {
+                                        while ($row = $result_page->fetch_assoc()) {
+                                            echo "<tr>";
+                                            echo "<td><a href='student_details.php?id=" . $row['student_id'] . "'>" . $row['full_name'] . "</a></td>";
+                                            echo "<td>" . $row['student_id'] . "</td>";
+                                            echo "<td><button class='btn btn-danger' onclick='deleteStudent(" . $row['student_id'] . ")'>Delete</button></td>";
+                                            echo "</tr>";
+                                        }
+                                    } else {
+                                        echo "<tr><td colspan='3'>No students found.</td></tr>";
+                                    }
+                                    ?>
+>>>>>>> b79d957c247dc2937c9fca5b55ac6f3294902608
                                 </tbody>
                             </table>
                         </div>
@@ -177,6 +211,7 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
     <!-- JavaScript for AJAX -->
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script>
+<<<<<<< HEAD
         // Function to fetch time information via AJAX
         function getTime() {
             $.ajax({
@@ -241,10 +276,24 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
                 });
             }
         });
+=======
+     // Function to fetch time information via JavaScript
+    function getTime() {
+        var options = {
+            hour: 'numeric',
+            minute: 'numeric',
+            second: 'numeric',
+            hour12: true // Display time in 12-hour format
+        };
+        var currentTime = new Date().toLocaleTimeString([], options);
+        $('#time-info').text('Current Time: ' + currentTime);
+    }
+>>>>>>> b79d957c247dc2937c9fca5b55ac6f3294902608
 
         // Initial load of students
         getStudents(<?php echo isset($_GET['page']) ? $_GET['page'] : 1; ?>);
 
+<<<<<<< HEAD
         // Initial call to fetch time and quote information
         getTime();
         getQuote();
@@ -255,6 +304,50 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
         // Update quote every 30 seconds
         setInterval(getQuote, 30000);
     </script>
+=======
+    // Initial call to fetch time and quote information
+    getTime();
+    getQuote();
+
+    // Update time every second
+    setInterval(getTime, 1000);
+
+    // Update quote every 30 seconds
+    setInterval(getQuote, 30000);
+    
+    // Function to delete a student record asynchronously
+    function deleteStudent(studentId) {
+        // First confirmation dialog
+        if (confirm('Are you sure you want to delete this student record?')) {
+            // Second confirmation dialog
+            if (confirm('This action is irreversible. Are you absolutely sure?')) {
+                $.ajax({
+                    url: 'delete_student.php?id=' + studentId,
+                    type: 'GET',
+                    beforeSend: function() {
+                        // Show loading spinner before sending the request
+                        $('#loading-spinner').show();
+                    },
+                    success: function(response) {
+                        // Redirect to the dashboard after successful deletion
+                        window.location.href = 'dashboard.php';
+                    },
+                    error: function(xhr, status, error) {
+                        // Display an error message if deletion fails
+                        alert('Error deleting student record. Please try again.');
+                    },
+                    complete: function() {
+                        // Remove loading spinner after request completion
+                        $('#loading-spinner').hide();
+                    }
+                });
+            }
+        }
+    }
+</script>
+
+
+>>>>>>> b79d957c247dc2937c9fca5b55ac6f3294902608
 </body>
 
 </html>
